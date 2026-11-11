@@ -5,7 +5,7 @@
 ![Mode](https://img.shields.io/badge/Modo-Simulaci%C3%B3n%20Local%20(DRY__RUN)-F26522?style=for-the-badge)
 ![License](https://img.shields.io/badge/Licencia-MIT-22D3EE?style=for-the-badge)
 
-> **⚠️ AVISO LEGAL (DISCLAIMER): Este repositorio es un proyecto de código abierto desarrollado exclusivamente con fines educativos y de exhibición técnica para portafolio de desarrollo de software. El bot opera estrictamente en modo simulación (`DRY_RUN=True`) consumiendo datos públicos de mercado y NO ejecuta órdenes con dinero real. Nada de lo contenido en este proyecto constituye asesoramiento financiero, recomendación de inversión ni invitación a operar derivados criptográficos.**
+> **⚠️ AVISO LEGAL (DISCLAIMER): Este repositorio es un proyecto de código abierto desarrollado con el propósito de compartir proyectos y conocimientos técnicos de desarrollo de software. El bot opera estrictamente en modo simulación (`DRY_RUN=True`) consumiendo datos públicos de mercado y NO ejecuta órdenes con dinero real. Nada de lo contenido en este proyecto constituye asesoramiento financiero, recomendación de inversión ni invitación a operar derivados criptográficos.**
 
 ---
 

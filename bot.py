@@ -3,7 +3,7 @@
 3 Cargadores — Bot DCA simulado para BTC/USDT:USDT (BingX)
 ==========================================================
 
-Proyecto educativo / de portafolio. Demuestra:
+Proyecto abierto para compartir proyectos y conocimientos técnicos. Demuestra:
 
 * Consumo de la API pública de BingX mediante ``ccxt`` (solo lectura).
 * Una estrategia DCA ("Dollar Cost Averaging") con gestión de capital por
@@ -1098,7 +1098,7 @@ footer{{color:var(--muted);font-size:12.5px;text-align:center;line-height:1.6}} 
 <section class="card"><h2>Historial de acciones simuladas</h2><div class="tabla"><table>
 <thead><tr><th>Fecha (UTC)</th><th>Ejec.</th><th>Ciclo</th><th>Acción</th><th>Precio</th><th>PnL</th>
 <th>Balas C/M</th><th>Detalle</th></tr></thead><tbody>{tabla}</tbody></table></div></section>
-<footer><b>Proyecto educativo de exhibición técnica.</b> Todas las operaciones son simuladas; no constituye
+<footer><b>Proyecto de código abierto para compartir proyectos y conocimientos técnicos.</b> Todas las operaciones son simuladas; no constituye
 asesoramiento financiero.<br>Precio de liquidación aproximado (margen de mantenimiento {TASA_MANTENIMIENTO:.1%}, sin comisiones ni funding).</footer>
 </div></body></html>
 """
