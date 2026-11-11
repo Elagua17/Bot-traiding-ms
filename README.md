@@ -23,26 +23,32 @@ El proyecto fue diseñado para demostrar prácticas limpias de ingeniería en Py
 
 ---
 
-## 🏗️ Arquitectura del Sistema
+## 🏗️ Arquitectura del Sistema y Consumo de APIs
 
 ```mermaid
 flowchart LR
-    A["BingX Public API<br/>(ccxt fetch_ticker)"] -->|Precio BTC/USDT| B("Motor de Estrategia<br/>bot.py")
+    subgraph BingX["BingX Perpetual Swap REST API (v2/v3)"]
+        A1["GET /quote/ticker<br/>(Precio & Vol 24h)"]
+        A2["GET /quote/premiumIndex<br/>(Funding Rate & Mark)"]
+        A3["GET /quote/klines<br/>(24 Velas OHLCV 1h)"]
+    end
+    A1 & A2 & A3 -->|CCXT + Backoff + Latencia ms| B("Motor de Estrategia<br/>bot.py")
     C[".env<br/>(Configuración)"] --> B
     D[("estado_bot.json<br/>Persistencia Local")] <-->|Lectura / Escritura Atómica| B
-    B -->|ANSI UI| E["Reporte en Terminal<br/>(Barras de Progreso)"]
-    B -->|SVG + CSS Grid| F["Dashboard Interactivo<br/>(reporte.html)"]
+    B -->|ANSI UI| E["Reporte en Terminal<br/>(Telemetría + Barras)"]
+    B -->|SVG + CSS Grid| F["Dashboard Interactivo<br/>(reporte.html + Velas 24h)"]
 ```
 
 ### Componentes principales en `bot.py`
 | Módulo / Sección | Responsabilidad |
 |---|---|
 | `Config` & `cargar_config()` | Carga tipada e inmutable (`@dataclass(frozen=True)`) de variables de entorno con validación defensiva. |
+| `consultar_telemetria_bingx()` | Consume **3 endpoints REST públicos de BingX** (`fetch_ticker`, `fetch_funding_rate`, `fetch_ohlcv`) midiendo la latencia HTTP en milisegundos con reintentos exponenciales. |
 | `Posicion` | Modelo matemático del contrato LONG aislado: cálculo de nocional, PnL no realizado, ROE (%) y precio de liquidación estimado. |
 | `decidir_accion()` | Lógica pura de la estrategia DCA escalonada según tramos de PnL porcentual. |
 | `ejecutar_dia()` | Orquestador de un ciclo diario: evalúa apertura, liquidación, Take Profit, escudo anti-liquidación y recargas DCA. |
-| `imprimir_reporte()` | Renderizador CLI con paleta RGB ANSI y barras de progreso `[██████░░░░]` listas para capturas de pantalla. |
-| `generar_reporte_html()` | Generador de dashboard HTML5/SVG moderno con paleta corporativa (`#0B2A4A`, `#F26522`, `#22D3EE`). |
+| `imprimir_reporte()` | Renderizador CLI con telemetría de endpoints HTTP (`200 OK`, ms) y barras de progreso `[██████░░░░]`. |
+| `generar_reporte_html()` | Generador de dashboard HTML5/SVG moderno con gráfico de **velas japonesas (OHLC 24h)** reales y tabla de auditoría de API. |
 
 ---
 
@@ -151,8 +157,13 @@ python bot.py --help
 ╰────────────────────────────────────────────────────────────────╯
   Ejecución #4 · Ciclo #1 · 2026-11-11 15:40 UTC · precio: BingX API pública
 
-  MERCADO
-  └─ Precio BTC ............ 83,000.00 USDT
+  MERCADO & TELEMETRÍA API (BingX REST)
+  ├─ Precio BTC ............ 74,477.90 USDT
+  ├─ Rango 24h / Cambio .... 73,187.5 – 74,748.0 USDT (+1.29%)
+  ├─ Volumen 24h / Funding . 745.2M USDT · Funding: +0.0056%
+  ├─ GET /openApi/swap/v2/quote/ticker    200 OK (380.4 ms)
+  ├─ GET /openApi/swap/v2/quote/premiumIndex 200 OK (393.9 ms)
+  └─ GET /openApi/swap/v3/quote/klines    200 OK (411.7 ms)
 
   POSICIÓN SIMULADA · LONG 5X aislado
   ├─ Contratos ............. 0.00592 BTC  (491.36 USDT)

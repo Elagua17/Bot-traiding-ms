@@ -1,33 +1,33 @@
 {
   "version": 2,
   "modo": "SIMULACION",
-  "creado": "2026-11-11T18:41:21Z",
+  "creado": "2026-11-11T18:59:56Z",
   "cargadores": {
-    "cargador_1": 17,
+    "cargador_1": 21,
     "cargador_2": 30,
     "cargador_3": 26
   },
   "posicion": {
-    "contratos": 0.00524831,
-    "precio_entrada": 85741.88798122035,
-    "margen": 170.0
+    "contratos": 0.0039058,
+    "precio_entrada": 89610.2622276901,
+    "margen": 130.0
   },
   "ciclo": {
     "numero": 1,
-    "inicio": "2026-11-11T18:41:21Z",
-    "balas_usadas": 17,
-    "usdt_compras": 90.0,
-    "usdt_margen": 80.0
+    "inicio": "2026-11-11T18:59:56Z",
+    "balas_usadas": 13,
+    "usdt_compras": 70.0,
+    "usdt_margen": 60.0
   },
   "estadisticas": {
-    "ejecuciones": 5,
+    "ejecuciones": 4,
     "ciclos_cerrados": 0,
     "liquidaciones": 0,
     "pnl_realizado_usdt": 0.0
   },
   "historial": [
     {
-      "fecha": "2026-11-11T18:41:21Z",
+      "fecha": "2026-11-11T18:59:56Z",
       "ejecucion": 1,
       "ciclo": 1,
       "evento": "INICIO_CICLO",
@@ -42,7 +42,7 @@
       }
     },
     {
-      "fecha": "2026-11-11T18:41:23Z",
+      "fecha": "2026-11-11T18:59:58Z",
       "ejecucion": 2,
       "ciclo": 1,
       "evento": "RECARGA_FUERTE",
@@ -57,7 +57,7 @@
       }
     },
     {
-      "fecha": "2026-11-11T18:41:24Z",
+      "fecha": "2026-11-11T18:59:59Z",
       "ejecucion": 3,
       "ciclo": 1,
       "evento": "DEFENSA_CRITICA",
@@ -72,12 +72,12 @@
       }
     },
     {
-      "fecha": "2026-11-11T18:41:31Z",
+      "fecha": "2026-11-11T19:00:08Z",
       "ejecucion": 4,
       "ciclo": 1,
       "evento": "DEFENSA_TERMINAL",
-      "precio": 74549.4,
-      "pnl_pct": -65.36,
+      "precio": 74477.9,
+      "pnl_pct": -65.67,
       "detalle": "margen +4 bala(s) (40.00 USDT) · origen C3×4",
       "balas_compra": 0,
       "balas_margen": 4,
@@ -85,27 +85,12 @@
       "origen": {
         "cargador_3": 4
       }
-    },
-    {
-      "fecha": "2026-11-11T18:45:34Z",
-      "ejecucion": 5,
-      "ciclo": 1,
-      "evento": "DEFENSA_CRITICA",
-      "precio": 74487.5,
-      "pnl_pct": -45.44,
-      "detalle": "compra 2 bala(s) (20.00 USDT) → 0.00134 BTC + margen +2 bala(s) (20.00 USDT) · origen C1×4",
-      "balas_compra": 2,
-      "balas_margen": 2,
-      "contratos": 0.00134251,
-      "origen": {
-        "cargador_1": 4
-      }
     }
   ],
   "serie": [
     {
       "ejecucion": 1,
-      "fecha": "2026-11-11T18:41:21Z",
+      "fecha": "2026-11-11T18:59:56Z",
       "precio": 95000.0,
       "pnl_pct": 0.0,
       "precio_entrada": 95000.0,
@@ -114,7 +99,7 @@
     },
     {
       "ejecucion": 2,
-      "fecha": "2026-11-11T18:41:23Z",
+      "fecha": "2026-11-11T18:59:58Z",
       "precio": 91000.0,
       "pnl_pct": -8.42,
       "precio_entrada": 92558.89,
@@ -123,7 +108,7 @@
     },
     {
       "ejecucion": 3,
-      "fecha": "2026-11-11T18:41:24Z",
+      "fecha": "2026-11-11T18:59:59Z",
       "precio": 83000.0,
       "pnl_pct": -28.69,
       "precio_entrada": 89610.26,
@@ -132,21 +117,239 @@
     },
     {
       "ejecucion": 4,
-      "fecha": "2026-11-11T18:41:31Z",
-      "precio": 74549.4,
-      "pnl_pct": -45.25,
+      "fecha": "2026-11-11T19:00:08Z",
+      "precio": 74477.9,
+      "pnl_pct": -45.46,
       "precio_entrada": 89610.26,
       "precio_liquidacion": 56552.64,
       "balas_restantes": 77
-    },
-    {
-      "ejecucion": 5,
-      "fecha": "2026-11-11T18:45:34Z",
-      "precio": 74487.5,
-      "pnl_pct": -34.75,
-      "precio_entrada": 85741.89,
-      "precio_liquidacion": 53564.77,
-      "balas_restantes": 73
     }
-  ]
+  ],
+  "telemetria_api": {
+    "modo_fuente": "BingX REST API (en vivo)",
+    "consultado_utc": "2026-11-11T19:00:07Z",
+    "simbolo": "BTC/USDT:USDT",
+    "precio": 74477.9,
+    "mark_price": 74469.1,
+    "cambio_24h_pct": 1.29,
+    "max_24h": 74748.0,
+    "min_24h": 73187.5,
+    "volumen_24h_usdt": 745157095.0,
+    "funding_rate_pct": 0.0056,
+    "latencia_total_ms": 6496.9,
+    "llamadas": [
+      {
+        "endpoint": "GET /openApi/swap/v2/quote/ticker",
+        "metodo": "fetch_ticker('BTC/USDT:USDT')",
+        "estado": "200 OK",
+        "latencia_ms": 5691.3
+      },
+      {
+        "endpoint": "GET /openApi/swap/v2/quote/premiumIndex",
+        "metodo": "fetch_funding_rate('BTC/USDT:USDT')",
+        "estado": "200 OK",
+        "latencia_ms": 393.9
+      },
+      {
+        "endpoint": "GET /openApi/swap/v3/quote/klines",
+        "metodo": "fetch_ohlcv('BTC/USDT:USDT', '1h', limit=24)",
+        "estado": "200 OK",
+        "latencia_ms": 411.7
+      }
+    ],
+    "velas_1h": [
+      {
+        "hora": "20:00",
+        "open": 73440.2,
+        "high": 73845.3,
+        "low": 73277.6,
+        "close": 73754.1,
+        "vol": 674.3
+      },
+      {
+        "hora": "21:00",
+        "open": 73754.1,
+        "high": 74027.0,
+        "low": 73754.1,
+        "close": 73822.8,
+        "vol": 554.72
+      },
+      {
+        "hora": "22:00",
+        "open": 73822.8,
+        "high": 73955.8,
+        "low": 73591.8,
+        "close": 73667.4,
+        "vol": 322.64
+      },
+      {
+        "hora": "23:00",
+        "open": 73667.4,
+        "high": 73806.1,
+        "low": 73520.6,
+        "close": 73763.5,
+        "vol": 200.45
+      },
+      {
+        "hora": "00:00",
+        "open": 73763.5,
+        "high": 73786.2,
+        "low": 73478.7,
+        "close": 73511.3,
+        "vol": 487.42
+      },
+      {
+        "hora": "01:00",
+        "open": 73511.3,
+        "high": 74000.1,
+        "low": 73327.7,
+        "close": 73573.1,
+        "vol": 431.62
+      },
+      {
+        "hora": "02:00",
+        "open": 73573.1,
+        "high": 73754.2,
+        "low": 73187.5,
+        "close": 73612.4,
+        "vol": 360.33
+      },
+      {
+        "hora": "03:00",
+        "open": 73612.4,
+        "high": 73862.5,
+        "low": 73567.5,
+        "close": 73743.3,
+        "vol": 177.19
+      },
+      {
+        "hora": "04:00",
+        "open": 73743.3,
+        "high": 73866.2,
+        "low": 73451.1,
+        "close": 73702.6,
+        "vol": 193.75
+      },
+      {
+        "hora": "05:00",
+        "open": 73702.6,
+        "high": 73940.7,
+        "low": 73654.1,
+        "close": 73896.7,
+        "vol": 126.16
+      },
+      {
+        "hora": "06:00",
+        "open": 73896.7,
+        "high": 73911.1,
+        "low": 73536.8,
+        "close": 73588.1,
+        "vol": 283.79
+      },
+      {
+        "hora": "07:00",
+        "open": 73588.1,
+        "high": 74085.4,
+        "low": 73500.6,
+        "close": 74062.2,
+        "vol": 925.67
+      },
+      {
+        "hora": "08:00",
+        "open": 74062.2,
+        "high": 74148.0,
+        "low": 73661.9,
+        "close": 73699.3,
+        "vol": 324.78
+      },
+      {
+        "hora": "09:00",
+        "open": 73699.3,
+        "high": 73845.2,
+        "low": 73524.5,
+        "close": 73765.5,
+        "vol": 207.96
+      },
+      {
+        "hora": "10:00",
+        "open": 73765.5,
+        "high": 74117.9,
+        "low": 73641.2,
+        "close": 74014.8,
+        "vol": 364.39
+      },
+      {
+        "hora": "11:00",
+        "open": 74014.8,
+        "high": 74087.0,
+        "low": 73905.6,
+        "close": 73958.8,
+        "vol": 130.34
+      },
+      {
+        "hora": "12:00",
+        "open": 73958.8,
+        "high": 74063.2,
+        "low": 73801.0,
+        "close": 73855.0,
+        "vol": 256.84
+      },
+      {
+        "hora": "13:00",
+        "open": 73855.0,
+        "high": 73967.6,
+        "low": 73638.5,
+        "close": 73769.5,
+        "vol": 366.53
+      },
+      {
+        "hora": "14:00",
+        "open": 73769.5,
+        "high": 73858.7,
+        "low": 73354.3,
+        "close": 73540.9,
+        "vol": 904.84
+      },
+      {
+        "hora": "15:00",
+        "open": 73540.9,
+        "high": 74449.0,
+        "low": 73364.7,
+        "close": 73953.1,
+        "vol": 1254.65
+      },
+      {
+        "hora": "16:00",
+        "open": 73953.1,
+        "high": 74389.5,
+        "low": 73885.2,
+        "close": 74224.1,
+        "vol": 410.3
+      },
+      {
+        "hora": "17:00",
+        "open": 74224.1,
+        "high": 74748.0,
+        "low": 74111.2,
+        "close": 74489.3,
+        "vol": 604.6
+      },
+      {
+        "hora": "18:00",
+        "open": 74489.3,
+        "high": 74606.9,
+        "low": 74358.6,
+        "close": 74468.5,
+        "vol": 208.38
+      },
+      {
+        "hora": "19:00",
+        "open": 74455.8,
+        "high": 74455.8,
+        "low": 74449.8,
+        "close": 74449.9,
+        "vol": 0.0
+      }
+    ]
+  }
 }

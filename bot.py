@@ -535,7 +535,7 @@ def ejecutar_dia(estado: dict[str, Any], precio: float, cfg: Config) -> list[dic
 
 
 # =========================================================================== #
-# Conexión con BingX (solo lectura)
+# Conexión con BingX (solo lectura) y Telemetría de API
 # =========================================================================== #
 def con_reintentos(fn: Callable[..., Any], *args: Any, intentos: int = 3,
                    espera: float = 2.0) -> Any:
@@ -561,13 +561,95 @@ def crear_exchange(cfg: Config) -> ccxt.Exchange:
     return ccxt.bingx(params)
 
 
-def obtener_precio(exchange: ccxt.Exchange) -> float:
-    """Último precio de ``BTC/USDT:USDT`` desde la API pública de BingX."""
+def consultar_telemetria_bingx(exchange: ccxt.Exchange) -> dict[str, Any]:
+    """Consulta múltiples endpoints públicos de BingX y mide la latencia de cada uno.
+
+    Endpoints consumidos:
+        1. ``fetch_ticker(SYMBOL)``: Precio actual, máximo/mínimo 24h, cambio % 24h y volumen.
+        2. ``fetch_funding_rate(SYMBOL)``: Tasa de financiación e índice/marca del perpetuo.
+        3. ``fetch_ohlcv(SYMBOL, '1h', limit=24)``: Últimas 24 velas horarias reales.
+
+    Returns:
+        Diccionario serializable con precios, métricas 24h, velas OHLCV y registro de
+        llamadas HTTP (endpoint, estado, latencia en ms).
+    """
+    llamadas: list[dict[str, Any]] = []
+
+    # 1. Endpoint Ticker 24h
+    t0 = time.perf_counter()
     ticker = con_reintentos(exchange.fetch_ticker, SYMBOL)
+    ms_ticker = round((time.perf_counter() - t0) * 1000, 1)
     precio = ticker.get("last") or ticker.get("close")
     if not precio:
         raise ccxt.ExchangeError("El ticker no devolvió precio.")
-    return float(precio)
+    llamadas.append({
+        "endpoint": "GET /openApi/swap/v2/quote/ticker",
+        "metodo": f"fetch_ticker('{SYMBOL}')",
+        "estado": "200 OK",
+        "latencia_ms": ms_ticker,
+    })
+
+    # 2. Endpoint Funding Rate & Mark Price
+    funding_rate: float | None = None
+    mark_price: float | None = None
+    try:
+        t0 = time.perf_counter()
+        fr = con_reintentos(exchange.fetch_funding_rate, SYMBOL)
+        ms_fr = round((time.perf_counter() - t0) * 1000, 1)
+        if fr.get("fundingRate") is not None:
+            funding_rate = round(float(fr["fundingRate"]) * 100, 4)  # en %
+        if fr.get("markPrice") is not None:
+            mark_price = round(float(fr["markPrice"]), 2)
+        llamadas.append({
+            "endpoint": "GET /openApi/swap/v2/quote/premiumIndex",
+            "metodo": f"fetch_funding_rate('{SYMBOL}')",
+            "estado": "200 OK",
+            "latencia_ms": ms_fr,
+        })
+    except ccxt.BaseError as exc:
+        log.warning("No se pudo obtener funding rate: %s", exc)
+
+    # 3. Endpoint Velas Históricas (OHLCV 1h - últimas 24h)
+    velas_24h: list[dict[str, Any]] = []
+    try:
+        t0 = time.perf_counter()
+        ohlcv = con_reintentos(exchange.fetch_ohlcv, SYMBOL, "1h", None, 24)
+        ms_ohlcv = round((time.perf_counter() - t0) * 1000, 1)
+        for v in ohlcv[-24:]:
+            ts_str = datetime.fromtimestamp(v[0] / 1000, tz=timezone.utc).strftime("%H:%M")
+            velas_24h.append({
+                "hora": ts_str,
+                "open": round(float(v[1]), 2),
+                "high": round(float(v[2]), 2),
+                "low": round(float(v[3]), 2),
+                "close": round(float(v[4]), 2),
+                "vol": round(float(v[5]), 2),
+            })
+        llamadas.append({
+            "endpoint": "GET /openApi/swap/v3/quote/klines",
+            "metodo": f"fetch_ohlcv('{SYMBOL}', '1h', limit=24)",
+            "estado": "200 OK",
+            "latencia_ms": ms_ohlcv,
+        })
+    except ccxt.BaseError as exc:
+        log.warning("No se pudo obtener OHLCV 24h: %s", exc)
+
+    latencia_total = round(sum(c["latencia_ms"] for c in llamadas), 1)
+    return {
+        "modo_fuente": "BingX REST API (en vivo)",
+        "consultado_utc": ahora_iso(),
+        "simbolo": SYMBOL,
+        "precio": round(float(precio), 2),
+        "mark_price": mark_price,
+        "cambio_24h_pct": round(float(ticker.get("percentage") or 0.0), 2),
+        "max_24h": round(float(ticker.get("high") or precio), 2),
+        "min_24h": round(float(ticker.get("low") or precio), 2),
+        "volumen_24h_usdt": round(float(ticker.get("quoteVolume") or 0.0), 0),
+        "funding_rate_pct": funding_rate,
+        "latencia_total_ms": latencia_total,
+        "llamadas": llamadas,
+        "velas_1h": velas_24h,
+    }
 
 
 def obtener_saldo(exchange: ccxt.Exchange, cfg: Config) -> float | None:
@@ -644,10 +726,23 @@ def imprimir_reporte(estado: dict[str, Any], precio: float, eventos: Sequence[di
     print(E.tenue(f"  Ejecución #{est['ejecuciones']} · Ciclo #{estado['ciclo']['numero']} · "
                   f"{datetime.now(timezone.utc):%Y-%m-%d %H:%M} UTC · precio: {fuente_precio}"))
 
-    print("\n" + E.cyan("  MERCADO"))
-    print(f"  └─ Precio BTC ............ {E.negrita(f'{precio:,.2f} USDT')}")
+    print("\n" + E.cyan("  MERCADO & TELEMETRÍA API (BingX REST)"))
+    print(f"  ├─ Precio BTC ............ {E.negrita(f'{precio:,.2f} USDT')}")
+    tele = estado.get("telemetria_api")
+    if tele and fuente_precio == "BingX API pública":
+        c24 = tele.get("cambio_24h_pct", 0.0)
+        rango = f"{tele.get('min_24h', 0):,.1f} – {tele.get('max_24h', 0):,.1f} USDT"
+        vol_m = (tele.get("volumen_24h_usdt") or 0) / 1_000_000
+        fr = tele.get("funding_rate_pct")
+        fr_str = f"{fr:+.4f}%" if fr is not None else "n/d"
+        print(f"  ├─ Rango 24h / Cambio .... {rango} ({_color_pnl(c24, f'{c24:+.2f}%')})")
+        print(f"  ├─ Volumen 24h / Funding . {vol_m:,.1f}M USDT · Funding: {fr_str}")
+        for idx, ll in enumerate(tele.get("llamadas", [])):
+            pref = "└─" if idx == len(tele["llamadas"]) - 1 and saldo is None else "├─"
+            est_ok = E.verde(ll["estado"])
+            print(f"  {pref} {ll['endpoint']:<36} {est_ok} ({ll['latencia_ms']} ms)")
     if saldo is not None:
-        print(f"     Saldo real (lectura) .. {saldo:,.2f} USDT")
+        print(f"  └─ Saldo real (lectura) .. {saldo:,.2f} USDT")
 
     print("\n" + E.cyan(f"  POSICIÓN SIMULADA · LONG {APALANCAMIENTO}X aislado"))
     pos = leer_posicion(estado, precio)
@@ -758,6 +853,55 @@ def _leyenda(items: Sequence[tuple[str, str]]) -> str:
         f'<span><i style="background:{c}"></i>{html.escape(t)}</span>' for t, c in items) + "</div>"
 
 
+def svg_velas(velas: Sequence[dict[str, Any]], ancho: int = 760, alto: int = 260) -> str:
+    """Genera un gráfico SVG de velas japonesas (OHLC) de las últimas 24 horas en BingX."""
+    if not velas:
+        return '<p class="vacio">Ejecuta sin --precio para descargar las 24 velas horarias desde la API de BingX.</p>'
+    vmin = min(v["low"] for v in velas)
+    vmax = max(v["high"] for v in velas)
+    if vmin == vmax:
+        vmin, vmax = vmin - 1, vmax + 1
+    pad = (vmax - vmin) * 0.08
+    vmin, vmax = vmin - pad, vmax + pad
+    izq, der, sup, inf = 70, 18, 14, 30
+    n = len(velas)
+    paso_x = (ancho - izq - der) / max(n, 1)
+    ancho_vela = max(4.0, paso_x * 0.58)
+
+    def cx(i: int) -> float:
+        return izq + (i + 0.5) * paso_x
+
+    def cy(val: float) -> float:
+        return sup + (vmax - val) * (alto - sup - inf) / (vmax - vmin)
+
+    s = [f'<svg viewBox="0 0 {ancho} {alto}" class="grafico" role="img">']
+    for k in range(5):
+        v = vmin + (vmax - vmin) * k / 4
+        s.append(f'<line x1="{izq}" x2="{ancho - der}" y1="{cy(v):.1f}" y2="{cy(v):.1f}" class="grid"/>'
+                 f'<text x="{izq - 8}" y="{cy(v) + 4:.1f}" class="eje" text-anchor="end">{v:,.0f}</text>')
+    for i in range(0, n, max(1, n // 8)):
+        s.append(f'<text x="{cx(i):.1f}" y="{alto - 8}" class="eje" text-anchor="middle">'
+                 f'{html.escape(velas[i]["hora"])}</text>')
+    for i, v in enumerate(velas):
+        alcista = v["close"] >= v["open"]
+        color = "#34D399" if alcista else "#F87171"
+        x_c = cx(i)
+        y_high, y_low = cy(v["high"]), cy(v["low"])
+        y_top = cy(max(v["open"], v["close"]))
+        y_bot = cy(min(v["open"], v["close"]))
+        h_body = max(2.0, y_bot - y_top)
+        s.append(
+            f'<g><line x1="{x_c:.1f}" x2="{x_c:.1f}" y1="{y_high:.1f}" y2="{y_low:.1f}" '
+            f'stroke="{color}" stroke-width="1.4"/>'
+            f'<rect x="{x_c - ancho_vela / 2:.1f}" y="{y_top:.1f}" width="{ancho_vela:.1f}" '
+            f'height="{h_body:.1f}" fill="{color}" rx="1.5"/>'
+            f'<title>{v["hora"]} UTC · O:{v["open"]:,.1f} H:{v["high"]:,.1f} '
+            f'L:{v["low"]:,.1f} C:{v["close"]:,.1f}</title></g>'
+        )
+    s.append("</svg>")
+    return "".join(s)
+
+
 def generar_reporte_html(ruta_estado: Path, ruta_html: Path) -> Path:
     """Lee ``estado_bot.json`` y exporta un dashboard HTML autocontenido.
 
@@ -825,6 +969,35 @@ def generar_reporte_html(ruta_estado: Path, ruta_html: Path) -> Path:
     ])
     graf_balas = svg_lineas(etiquetas, [("Balas", [p["balas_restantes"] for p in serie],
                                          "#F26522", False)])
+
+    # ---- Telemetría de API & Velas 24h ----
+    tele = estado.get("telemetria_api") or {}
+    velas_24h = tele.get("velas_1h") or []
+    graf_velas_html = svg_velas(velas_24h)
+    llamadas_api = tele.get("llamadas") or []
+    filas_api = "".join(
+        f'<tr><td><code>{esc(c["endpoint"])}</code></td><td><code>{esc(c["metodo"])}</code></td>'
+        f'<td><span class="badge ganancia">{esc(c["estado"])}</span></td>'
+        f'<td><strong>{c["latencia_ms"]} ms</strong></td></tr>'
+        for c in llamadas_api
+    ) or '<tr><td colspan="4" class="vacio">Sin llamadas recientes a la API.</td></tr>'
+    c24 = tele.get("cambio_24h_pct", 0.0)
+    fr_pct = tele.get("funding_rate_pct")
+    vol_m = (tele.get("volumen_24h_usdt") or 0) / 1_000_000
+    min_24h = tele.get("min_24h", 0)
+    max_24h = tele.get("max_24h", 0)
+    mark_p = tele.get("mark_price", 0)
+    lat_tot = tele.get("latencia_total_ms", 0)
+    resumen_api = (
+        '<div class="kpis" style="margin-bottom:16px">'
+        + kpi("Cambio 24h (BingX)", f"{c24:+.2f}%", f"Rango: {min_24h:,.0f} – {max_24h:,.0f}",
+              "pos" if c24 >= 0 else "neg")
+        + kpi("Volumen 24h Perpetuo", f"{vol_m:,.1f}M", "USDT operados en BingX")
+        + kpi("Funding Rate (8h)", f"{fr_pct:+.4f}%" if fr_pct is not None else "—",
+              f"Mark: {mark_p:,.2f} USDT")
+        + kpi("Latencia Total API", f"{lat_tot} ms", f"{len(llamadas_api)} endpoints REST HTTP 200")
+        + '</div>'
+    ) if tele else ""
 
     # ---- Historial ----
     filas = []
@@ -904,8 +1077,17 @@ footer{{color:var(--muted);font-size:12.5px;text-align:center;line-height:1.6}} 
 <p>BingX · {SYMBOL} · LONG {APALANCAMIENTO}X margen aislado · bala de referencia en .env · generado {generado}</p></div>
 <span class="tag">MODO SIMULACIÓN</span></header>
 <section class="kpis">{"".join(kpis)}</section>
-<section class="card"><h2>Estado de los cargadores · {total}/{BALAS_TOTALES} balas</h2>
+<section class="card"><h2> Estado de los cargadores · {total}/{BALAS_TOTALES} balas</h2>
 <div class="cargadores">{"".join(tarjetas)}</div></section>
+<section class="card"><h2>📡 Telemetría de API en Tiempo Real (BingX Perpetual Swap REST v2/v3)</h2>
+{resumen_api}
+<div class="graficos">
+<div><h3 style="font-size:13px;color:var(--muted);margin-bottom:10px;text-transform:uppercase;letter-spacing:1px">Endpoints Consumidos vía CCXT</h3>
+<div class="tabla"><table><thead><tr><th>Endpoint HTTP</th><th>Método CCXT</th><th>Estado</th><th>Latencia</th></tr></thead>
+<tbody>{filas_api}</tbody></table></div></div>
+<div><h3 style="font-size:13px;color:var(--muted);margin-bottom:10px;text-transform:uppercase;letter-spacing:1px">Velas Japonesas Reales (OHLC 1h · Últimas 24h en BingX)</h3>
+{graf_velas_html}</div>
+</div></section>
 <section class="graficos">
 <div class="card"><h2>PnL % sobre margen por ejecución</h2>{graf_pnl}
 {_leyenda([("PnL %", "#22D3EE"), ("Take Profit", "#34D399")])}</div>
@@ -973,9 +1155,11 @@ def main(argv: Sequence[str] | None = None) -> int:
         precio, fuente = args.precio, "manual (--precio)"
     else:
         try:
-            log.info("Consultando precio de %s en BingX (API pública)...", SYMBOL)
+            log.info("Consultando endpoints públicos de %s en BingX (Ticker, Funding, OHLCV)...", SYMBOL)
             exchange = crear_exchange(cfg)
-            precio, fuente = obtener_precio(exchange), "BingX API pública"
+            telemetria = consultar_telemetria_bingx(exchange)
+            estado["telemetria_api"] = telemetria
+            precio, fuente = telemetria["precio"], "BingX API pública"
             saldo = obtener_saldo(exchange, cfg)
         except ccxt.NetworkError as exc:
             log.error("Sin conexión con BingX tras varios intentos: %s", exc)
