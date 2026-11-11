@@ -1,0 +1,152 @@
+{
+  "version": 2,
+  "modo": "SIMULACION",
+  "creado": "2026-11-11T18:41:21Z",
+  "cargadores": {
+    "cargador_1": 17,
+    "cargador_2": 30,
+    "cargador_3": 26
+  },
+  "posicion": {
+    "contratos": 0.00524831,
+    "precio_entrada": 85741.88798122035,
+    "margen": 170.0
+  },
+  "ciclo": {
+    "numero": 1,
+    "inicio": "2026-11-11T18:41:21Z",
+    "balas_usadas": 17,
+    "usdt_compras": 90.0,
+    "usdt_margen": 80.0
+  },
+  "estadisticas": {
+    "ejecuciones": 5,
+    "ciclos_cerrados": 0,
+    "liquidaciones": 0,
+    "pnl_realizado_usdt": 0.0
+  },
+  "historial": [
+    {
+      "fecha": "2026-11-11T18:41:21Z",
+      "ejecucion": 1,
+      "ciclo": 1,
+      "evento": "INICIO_CICLO",
+      "precio": 95000.0,
+      "pnl_pct": null,
+      "detalle": "Apertura LONG 5X: 2 balas (20.00 USDT) → 0.00105 BTC",
+      "balas_compra": 2,
+      "balas_margen": 0,
+      "contratos": 0.00105263,
+      "origen": {
+        "cargador_1": 2
+      }
+    },
+    {
+      "fecha": "2026-11-11T18:41:23Z",
+      "ejecucion": 2,
+      "ciclo": 1,
+      "evento": "RECARGA_FUERTE",
+      "precio": 91000.0,
+      "pnl_pct": -21.05,
+      "detalle": "compra 3 bala(s) (30.00 USDT) → 0.00165 BTC · origen C1×3",
+      "balas_compra": 3,
+      "balas_margen": 0,
+      "contratos": 0.00164835,
+      "origen": {
+        "cargador_1": 3
+      }
+    },
+    {
+      "fecha": "2026-11-11T18:41:24Z",
+      "ejecucion": 3,
+      "ciclo": 1,
+      "evento": "DEFENSA_CRITICA",
+      "precio": 83000.0,
+      "pnl_pct": -51.64,
+      "detalle": "compra 2 bala(s) (20.00 USDT) → 0.00120 BTC + margen +2 bala(s) (20.00 USDT) · origen C1×4",
+      "balas_compra": 2,
+      "balas_margen": 2,
+      "contratos": 0.00120482,
+      "origen": {
+        "cargador_1": 4
+      }
+    },
+    {
+      "fecha": "2026-11-11T18:41:31Z",
+      "ejecucion": 4,
+      "ciclo": 1,
+      "evento": "DEFENSA_TERMINAL",
+      "precio": 74549.4,
+      "pnl_pct": -65.36,
+      "detalle": "margen +4 bala(s) (40.00 USDT) · origen C3×4",
+      "balas_compra": 0,
+      "balas_margen": 4,
+      "contratos": 0.0,
+      "origen": {
+        "cargador_3": 4
+      }
+    },
+    {
+      "fecha": "2026-11-11T18:45:34Z",
+      "ejecucion": 5,
+      "ciclo": 1,
+      "evento": "DEFENSA_CRITICA",
+      "precio": 74487.5,
+      "pnl_pct": -45.44,
+      "detalle": "compra 2 bala(s) (20.00 USDT) → 0.00134 BTC + margen +2 bala(s) (20.00 USDT) · origen C1×4",
+      "balas_compra": 2,
+      "balas_margen": 2,
+      "contratos": 0.00134251,
+      "origen": {
+        "cargador_1": 4
+      }
+    }
+  ],
+  "serie": [
+    {
+      "ejecucion": 1,
+      "fecha": "2026-11-11T18:41:21Z",
+      "precio": 95000.0,
+      "pnl_pct": 0.0,
+      "precio_entrada": 95000.0,
+      "precio_liquidacion": 76305.19,
+      "balas_restantes": 88
+    },
+    {
+      "ejecucion": 2,
+      "fecha": "2026-11-11T18:41:23Z",
+      "precio": 91000.0,
+      "pnl_pct": -8.42,
+      "precio_entrada": 92558.89,
+      "precio_liquidacion": 74344.46,
+      "balas_restantes": 85
+    },
+    {
+      "ejecucion": 3,
+      "fecha": "2026-11-11T18:41:24Z",
+      "precio": 83000.0,
+      "pnl_pct": -28.69,
+      "precio_entrada": 89610.26,
+      "precio_liquidacion": 66834.95,
+      "balas_restantes": 81
+    },
+    {
+      "ejecucion": 4,
+      "fecha": "2026-11-11T18:41:31Z",
+      "precio": 74549.4,
+      "pnl_pct": -45.25,
+      "precio_entrada": 89610.26,
+      "precio_liquidacion": 56552.64,
+      "balas_restantes": 77
+    },
+    {
+      "ejecucion": 5,
+      "fecha": "2026-11-11T18:45:34Z",
+      "precio": 74487.5,
+      "pnl_pct": -34.75,
+      "precio_entrada": 85741.89,
+      "precio_liquidacion": 53564.77,
+      "balas_restantes": 73
+    }
+  ]
+}
