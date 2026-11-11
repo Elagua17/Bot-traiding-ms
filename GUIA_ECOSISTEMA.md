@@ -92,8 +92,8 @@ flowchart LR
 
 ---
 
-## 5. Seguridad y Privacidad: ¿Hay algún riesgo?
+## 5. Seguridad, Modo Simulación y Adaptación a Dinero Real
 
-- **Cero dinero real en juego:** El programa tiene bloqueado por código (`DRY_RUN = True`) cualquier envío de órdenes reales. No tiene funciones para comprar ni vender de verdad.
-- **No necesita contraseñas ni cuentas:** Para consultar el precio de Bitcoin usa datos públicos abiertos (igual que cuando buscás el precio del dólar en Google).
-- **Protección de claves locales:** Si un desarrollador crea un archivo `.env` en su computadora para hacer pruebas, el archivo `.gitignore` bloquea su subida a GitHub automáticamente para que ningún dato sensible quede expuesto públicamente.
+- **Subido en modo simulación, adaptable a dinero real:** El código está publicado en **modo simulación (`DRY_RUN = True`)** para que cualquiera pueda descargarlo, probarlo y auditar cómo funciona sin arriesgar capital. Al mismo tiempo, la estructura está lista para conectarse a los endpoints de órdenes reales de la **API de BingX** (`create_order`, `add_margin`, `set_leverage`) si el usuario decide configurarlo para operar en vivo con sus propias credenciales.
+- **Conexión real a las APIs de BingX:** Incluso en modo simulación, el bot **no inventa los precios**: se conecta en tiempo real a 3 servicios públicos de la API de BingX (*Ticker 24h*, *Funding Rate* y *Velas Históricas Klines*) y permite autenticar claves privadas (`BINGX_API_KEY` y `BINGX_SECRET_KEY`) mediante firma criptográfica para consultar el saldo real de la cuenta.
+- **Protección de claves locales:** El archivo `.gitignore` bloquea cualquier archivo `.env` local para que ninguna clave privada pueda subirse por accidente a GitHub.

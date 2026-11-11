@@ -1098,8 +1098,7 @@ footer{{color:var(--muted);font-size:12.5px;text-align:center;line-height:1.6}} 
 <section class="card"><h2>Historial de acciones simuladas</h2><div class="tabla"><table>
 <thead><tr><th>Fecha (UTC)</th><th>Ejec.</th><th>Ciclo</th><th>Acción</th><th>Precio</th><th>PnL</th>
 <th>Balas C/M</th><th>Detalle</th></tr></thead><tbody>{tabla}</tbody></table></div></section>
-<footer><b>Proyecto de código abierto para compartir proyectos y conocimientos técnicos.</b> Todas las operaciones son simuladas; no constituye
-asesoramiento financiero.<br>Precio de liquidación aproximado (margen de mantenimiento {TASA_MANTENIMIENTO:.1%}, sin comisiones ni funding).</footer>
+<footer><b>Proyecto abierto para compartir proyectos y conocimientos técnicos.</b> Publicado en modo simulación (<code>DRY_RUN=True</code>) consumiendo la API REST de BingX en vivo; arquitectura adaptable para ejecución con dinero real. No constituye asesoramiento financiero.<br>Precio de liquidación aproximado (margen de mantenimiento {TASA_MANTENIMIENTO:.1%}, sin comisiones ni funding).</footer>
 </div></body></html>
 """
     ruta_html.write_text(documento, encoding="utf-8")

@@ -1,11 +1,11 @@
 # 🎯 3 Cargadores — Bot Algorítmico DCA & Gestión de Margen (BingX)
 
 ![Python](https://img.shields.io/badge/Python-3.10%2B-0B2A4A?style=for-the-badge&logo=python&logoColor=22D3EE)
-![CCXT](https://img.shields.io/badge/CCXT-4.3%2B-0B2A4A?style=for-the-badge&logo=bitcoin&logoColor=F26522)
-![Mode](https://img.shields.io/badge/Modo-Simulaci%C3%B3n%20Local%20(DRY__RUN)-F26522?style=for-the-badge)
-![License](https://img.shields.io/badge/Licencia-MIT-22D3EE?style=for-the-badge)
+![BingX API](https://img.shields.io/badge/BingX_API-Perpetual_Swap_v2%2Fv3-0B2A4A?style=for-the-badge&logo=bitcoin&logoColor=22D3EE)
+![CCXT](https://img.shields.io/badge/CCXT-4.3%2B-0B2A4A?style=for-the-badge&logo=fastapi&logoColor=F26522)
+![Mode](https://img.shields.io/badge/Modo-Simulaci%C3%B3n%20(Adaptable%20a%20Real)-F26522?style=for-the-badge)
 
-> **⚠️ AVISO LEGAL (DISCLAIMER): Este repositorio es un proyecto de código abierto desarrollado con el propósito de compartir proyectos y conocimientos técnicos de desarrollo de software. El bot opera estrictamente en modo simulación (`DRY_RUN=True`) consumiendo datos públicos de mercado y NO ejecuta órdenes con dinero real. Nada de lo contenido en este proyecto constituye asesoramiento financiero, recomendación de inversión ni invitación a operar derivados criptográficos.**
+> **⚠️ AVISO LEGAL (DISCLAIMER): Este repositorio es un proyecto de código abierto desarrollado con el propósito de compartir proyectos y conocimientos técnicos de desarrollo de software. Aunque la arquitectura está preparada y puede adaptarse fácilmente para operar con dinero real a través de la API privada de BingX, este repositorio se encuentra publicado y configurado en modo simulación (`DRY_RUN=True`) por seguridad, consumiendo datos reales del mercado sin ejecutar órdenes financieras. Nada de lo contenido en este proyecto constituye asesoramiento financiero ni recomendación de inversión.**
 
 ---
 
@@ -49,6 +49,28 @@ flowchart LR
 | `ejecutar_dia()` | Orquestador de un ciclo diario: evalúa apertura, liquidación, Take Profit, escudo anti-liquidación y recargas DCA. |
 | `imprimir_reporte()` | Renderizador CLI con telemetría de endpoints HTTP (`200 OK`, ms) y barras de progreso `[██████░░░░]`. |
 | `generar_reporte_html()` | Generador de dashboard HTML5/SVG moderno con gráfico de **velas japonesas (OHLC 24h)** reales y tabla de auditoría de API. |
+
+### 🔌 APIs de BingX Utilizadas (Integración vía `ccxt`)
+
+El proyecto se conecta directamente con la **API REST de Futuros Perpetuos de BingX (`Swap v2 / v3`)**. Se divide en los endpoints actualmente activos en esta versión de demostración y los endpoints de ejecución para operación con dinero real:
+
+#### 1. Endpoints Activos en Modo Simulación (Lectura en Tiempo Real)
+| Endpoint Oficial de BingX | Método en `ccxt` | Datos que Consume el Bot | Autenticación |
+|---|---|---|---|
+| `GET /openApi/swap/v2/quote/ticker` | `exchange.fetch_ticker('BTC/USDT:USDT')` | Precio actual (`last`), rango máximo/mínimo 24h, cambio % 24h y volumen operado en USDT. | Pública |
+| `GET /openApi/swap/v2/quote/premiumIndex` | `exchange.fetch_funding_rate('BTC/USDT:USDT')` | Tasa de financiación (*Funding Rate* cada 8h) y *Mark Price* del contrato perpetuo. | Pública |
+| `GET /openApi/swap/v3/quote/klines` | `exchange.fetch_ohlcv('BTC/USDT:USDT', '1h', limit=24)` | Últimas **24 velas japonesas de 1 hora** (Open, High, Low, Close, Volume) graficadas en `reporte.html`. | Pública |
+| `GET /openApi/swap/v2/user/balance` | `exchange.fetch_balance()` | Lectura de saldo libre en USDT en la cuenta de futuros (si se proveen `BINGX_API_KEY` y `BINGX_SECRET_KEY` en `.env`). | **Privada (HMAC-SHA256)** |
+
+#### 2. Endpoints de Ejecución (Para adaptarlo a Dinero Real)
+El repositorio está subido en **modo simulación (`DRY_RUN=True`)**, pero la arquitectura está diseñada para que, al pasar a producción real con claves de API con permiso de *Perpetual Futures Trading*, las funciones `simular_compra()` y `simular_margen()` se conecten directamente a:
+| Endpoint Oficial de BingX | Método en `ccxt` | Función en la Estrategia Real |
+|---|---|---|
+| `POST /openApi/swap/v2/trade/marginType` | `exchange.set_margin_mode('isolated', symbol)` | Configura el par en **Margen Aislado**. |
+| `POST /openApi/swap/v2/trade/leverage` | `exchange.set_leverage(5, symbol, {'side': 'LONG'})` | Ajusta el apalancamiento a **5X**. |
+| `GET /openApi/swap/v2/user/positions` | `exchange.fetch_positions([symbol])` | Sincroniza contratos abiertos, precio de entrada, PnL % y precio de liquidación real. |
+| `POST /openApi/swap/v2/trade/order` | `exchange.create_order(symbol, 'market', 'buy'/'sell', ...)` | Ejecuta compras DCA a mercado (`positionSide: 'LONG'`) y cierres por Take Profit (`reduceOnly: True`). |
+| `POST /openApi/swap/v2/trade/positionMargin` | `exchange.add_margin(symbol, amount, {'positionSide': 'LONG'})` | **Inyecta colateral real** al margen aislado en Defensa Crítica, Terminal y Escudo Anti-Liquidación. |
 
 ---
 
